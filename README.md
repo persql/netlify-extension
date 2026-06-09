@@ -12,26 +12,33 @@ namespace token (not a sign-in id_token).
 
 ## Status
 
-The **build/plugin wiring is verified** against `@netlify/create-sdk@3.0.4` /
-`@netlify/sdk@5.0.4` (see `netlify.toml`, `package.json`). The **extension code
-is a skeleton, not yet buildable** — a real v5 extension is a multi-file
-Vite + React + tRPC project, so the reliable path is:
+**Verified building against `@netlify/sdk@5.0.4`.** `npm install` resolves
+clean and `netlify-extension build` compiles the build-event-handler bundle
+(`persql-extension-buildhooks`) from `src/index.ts`, then reports
+`Build complete!`. The UI connect surface is *optional for the build* (it's
+skipped when `config.ui` is absent), so the env-injection half is a complete,
+buildable extension on its own.
 
-```
-npm create @netlify/sdk@latest      # generates src/ui (surfaces), src/server,
-                                    # src/endpoints, src/schema, vite/tsconfig
-```
+Still needed for the full Connect-PerSQL UX: the UI surface. Generate it with
+`npm create @netlify/sdk@latest` (requires the Netlify CLI; produces
+`src/ui/surfaces` + `src/server` + tRPC + vite/tsconfig) and wire the OAuth
+token read there. The build-handler stub (`loadConnection`) then reads the
+persisted connection.
 
-then implement the two PerSQL pieces below into the generated tree.
+Verified config shapes (these tripped the build until fixed):
 
-Two v5 facts that older docs get wrong — both already reflected in the skeleton:
+- `extension.yaml` nests everything under a top-level `config:` key
+  (`{ config: { name?, slug, ui? } }`); `slug` is lowercase-with-dashes.
+- `package.json` needs `main` pointing at the entry (`src/index.ts`).
 
-- **`auth.providerToken` lives in the server/surface context, not the build
-  hook.** `onPreBuild` receives `{ netlifyConfig, client, ... }` — no `auth`.
-  So the surface reads the token and persists the connection; `onPreBuild`
-  reads it back via `client` and sets env via `netlifyConfig.build.environment`.
-- **`ProviderAuthCard` is not exported by `@netlify/sdk@5`.** Use the current
-  connect/OAuth components from <https://developers.netlify.com/sdk/>.
+Two v5 facts older docs get wrong — both handled here:
+
+- **`auth.providerToken` is in the server/surface context, not the build
+  hook.** `onPreBuild` receives `{ netlifyConfig, client }` — no `auth`. The
+  surface persists the connection; `onPreBuild` reads it back and sets env via
+  `netlifyConfig.build.environment`.
+- **`ProviderAuthCard` is not exported by `@netlify/sdk@5`** — use the current
+  connect components from <https://developers.netlify.com/sdk/>.
 
 ## Layout
 

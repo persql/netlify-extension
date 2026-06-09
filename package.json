@@ -4,6 +4,7 @@
   "description": "Connect a Netlify site to PerSQL over OAuth and inject the database env vars.",
   "type": "module",
   "private": true,
+  "main": "src/index.ts",
   "scripts": {
     "dev": "netlify-extension dev",
     "build": "netlify-extension build"

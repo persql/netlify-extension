@@ -1,13 +1,15 @@
 # Netlify extension manifest.
 #
-# `slug` MUST match the slug Netlify auto-generates when you create the
-# extension (Extensions -> Created by your team -> Create an extension). It
-# appends a nanoid, so you can't pick it up front: create the extension first,
-# copy the generated slug from the Manage section, paste it here, then commit +
-# redeploy. See https://developers.netlify.com/sdk/publish/publish-extensions/
-name: PerSQL
-slug: persql-REPLACE_WITH_GENERATED_SLUG
-
-# Permission scopes are chosen in the Netlify UI at create time (least
-# privilege). This extension only needs to write the connected site's
-# environment variables — select the site env-var write scope, nothing more.
+# Shape verified against @netlify/sdk@5.0.4:
+#   ExtensionConfigurationFileSchema = { config: { name?, description?, slug, ui? } }
+# Everything nests under `config:`. `slug` must be lowercase-with-dashes and
+# must match the slug Netlify auto-generates when you create the extension
+# (Extensions -> Created by your team -> Create an extension): copy it from the
+# Manage section, paste below, then commit + redeploy.
+# See https://developers.netlify.com/sdk/publish/publish-extensions/
+config:
+  name: PerSQL
+  slug: persql-extension
+  # `ui.surfaces` / `ui.build` come from the generated scaffold
+  # (npm create @netlify/sdk@latest). Permission scopes are chosen in the
+  # Netlify UI at create time (least privilege: site env-var write).
