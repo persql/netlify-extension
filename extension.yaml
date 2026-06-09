@@ -1,0 +1,13 @@
+# Netlify extension manifest.
+#
+# `slug` MUST match the slug Netlify auto-generates when you create the
+# extension (Extensions -> Created by your team -> Create an extension). It
+# appends a nanoid, so you can't pick it up front: create the extension first,
+# copy the generated slug from the Manage section, paste it here, then commit +
+# redeploy. See https://developers.netlify.com/sdk/publish/publish-extensions/
+name: PerSQL
+slug: persql-REPLACE_WITH_GENERATED_SLUG
+
+# Permission scopes are chosen in the Netlify UI at create time (least
+# privilege). This extension only needs to write the connected site's
+# environment variables — select the site env-var write scope, nothing more.
