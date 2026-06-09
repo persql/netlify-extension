@@ -1,26 +1,27 @@
-# Netlify extension build config — build/dev commands + the @netlify/sdk build
-# plugin. The exact command + plugin package are version-specific: generate the
-# canonical netlify.toml + package.json with `npm create @netlify/sdk@latest`
-# and merge this repo's src/, extension.yaml, and details.md into it rather than
-# trusting the placeholders below.
+# Netlify extension build config.
+# Verified against @netlify/create-sdk@3.0.4 / @netlify/sdk@5.0.4 (the values
+# the official scaffolder emits).
 #
 # The OAuth provider connection (Authorization URL, Token URL, Client ID,
-# Client Secret, Scopes) is NOT set here — it's entered in the extension's
-# settings UI on the Netlify dashboard:
-#
-#   Short description   PerSQL
-#   Authorization URL   https://api.persql.com/oauth/authorize
-#   Token URL           https://api.persql.com/oauth/token
-#   Client ID           <psqlrp_… from console -> OAuth apps>
-#   Client Secret       <psqlrs_… shown once at creation>
-#   Scopes              database
-#
-# Netlify's fixed OAuth callback is https://api.netlify.com/auth/done/identeer —
-# register it as a redirect URI on the PerSQL OAuth app.
+# Client Secret, Scopes) is set in the extension's settings UI on the Netlify
+# dashboard, NOT here:
+#   Authorization URL  https://api.persql.com/oauth/authorize
+#   Token URL          https://api.persql.com/oauth/token
+#   Client ID/Secret   from PerSQL console -> OAuth apps (confidential)
+#   Scopes             database
+# Register Netlify's fixed callback https://api.netlify.com/auth/done/identeer
+# as a redirect URI on the PerSQL OAuth app.
 
 [build]
-  command = "netlify-sdk build"
-  publish = "dist"
+command = "netlify-extension build"
+publish = ".ntli/site/static"
 
 [dev]
-  command = "netlify-sdk dev"
+command = "netlify-extension dev"
+port = 8989
+
+[functions]
+directory = "src/endpoints"
+
+[[plugins]]
+package = "@netlify/netlify-plugin-netlify-extension"

@@ -10,21 +10,41 @@ same surface behind **OAuth apps** in the PerSQL console. A non-`openid` scope
 (`database`) routes to the "connect data" flow, which mints a `psql_live_*`
 namespace token (not a sign-in id_token).
 
+## Status
+
+The **build/plugin wiring is verified** against `@netlify/create-sdk@3.0.4` /
+`@netlify/sdk@5.0.4` (see `netlify.toml`, `package.json`). The **extension code
+is a skeleton, not yet buildable** — a real v5 extension is a multi-file
+Vite + React + tRPC project, so the reliable path is:
+
+```
+npm create @netlify/sdk@latest      # generates src/ui (surfaces), src/server,
+                                    # src/endpoints, src/schema, vite/tsconfig
+```
+
+then implement the two PerSQL pieces below into the generated tree.
+
+Two v5 facts that older docs get wrong — both already reflected in the skeleton:
+
+- **`auth.providerToken` lives in the server/surface context, not the build
+  hook.** `onPreBuild` receives `{ netlifyConfig, client, ... }` — no `auth`.
+  So the surface reads the token and persists the connection; `onPreBuild`
+  reads it back via `client` and sets env via `netlifyConfig.build.environment`.
+- **`ProviderAuthCard` is not exported by `@netlify/sdk@5`.** Use the current
+  connect/OAuth components from <https://developers.netlify.com/sdk/>.
+
 ## Layout
 
-- `src/index.ts` — extension entry. `onPreBuild` reads
-  `context.auth.providerToken`, provisions/identifies a database, and sets the
-  three env vars on the site.
-- `src/ui/team-configuration.tsx` — the `ProviderAuthCard` connect surface.
+- `src/index.ts` — extension entry: `onPreBuild` reads the persisted connection
+  via `client` and writes the three env vars via `netlifyConfig`.
+- `src/ui/team-configuration.tsx` — placeholder for the connect surface (the
+  real one is generated; see above).
 - `extension.yaml` — manifest (`name` + `slug`). The slug must match the one
   Netlify auto-generates at create time (see Publish).
 - `details.md` — directory listing copy (optional `/assets/` for images).
-- `netlify.toml` — build/dev + the `@netlify/sdk` build plugin. The OAuth
-  provider connection is configured in the extension's settings UI, not here.
-
-> The build/plugin wiring is SDK-version-specific. The reliable path is to
-> generate the canonical scaffold with `npm create @netlify/sdk@latest`, then
-> merge this repo's `src/`, `extension.yaml`, and `details.md` into it.
+- `netlify.toml` — build/dev + the `@netlify/netlify-plugin-netlify-extension`
+  plugin. The OAuth provider connection is configured in the extension's
+  settings UI, not here.
 
 ## OAuth provider config (extension settings UI)
 
@@ -66,13 +86,19 @@ thoroughly while Private. Full reference:
 6. **Go public.** Manage -> Visibility -> **Change visibility** (Public,
    Unlisted) to share by link, then **Submit for listing** for directory review.
 
-## To verify against the live Netlify SDK
+## Still to build (after `npm create @netlify/sdk@latest`)
 
-The two integration points use `@netlify/sdk` surfaces that vary by SDK version
-— confirm them against <https://developers.netlify.com/sdk/> before shipping:
+1. **Connect surface** (`src/ui/surfaces/TeamConfiguration.tsx`) — render the
+   OAuth connect control; on success read `auth.providerToken`, call PerSQL to
+   provision/identify a database, and persist the connection via the surface's
+   tRPC mutation (`src/server` + `src/schema`).
+2. **PerSQL provisioning** — from the surface (where `providerToken` lives),
+   resolve the namespace and ensure a database. If no bearer-authenticated
+   provisioning endpoint exists, fall back to persisting `apiUrl` + `token` and
+   letting the user pick the database slug in the surface.
+3. **`onPreBuild`** (`src/index.ts`) — read the persisted connection via
+   `client` and set `netlifyConfig.build.environment.{PERSQL_API_URL,
+   PERSQL_DATABASE,PERSQL_TOKEN}` (already stubbed).
 
-- `utils.setEnvironmentVariables(...)` in `onPreBuild` (the env-var write API).
-- The `/v1/whoami` and `/v1/databases` PerSQL calls in `provisionDatabase` — if
-  a bearer-authenticated provisioning endpoint isn't available, the v1 fallback
-  is to write `PERSQL_API_URL` + `PERSQL_TOKEN` and expose a database-slug field
-  in the team config for the user to fill.
+Confirm exact component/client APIs against
+<https://developers.netlify.com/sdk/> for the installed SDK version.

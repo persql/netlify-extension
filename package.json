@@ -6,13 +6,12 @@
   "private": true,
   "scripts": {
     "dev": "netlify-extension dev",
-    "build": "netlify-extension build",
-    "typecheck": "tsc --noEmit"
+    "build": "netlify-extension build"
   },
   "dependencies": {
-    "@netlify/sdk": "^2"
+    "@netlify/sdk": "^5.0.4"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "@netlify/netlify-plugin-netlify-extension": "^1"
   }
 }
